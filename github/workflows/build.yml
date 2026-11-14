@@ -14,50 +14,53 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Descargar repositorio
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Configurar Java
+      - name: Setup Java
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
 
-      - name: Configurar Android SDK
-        uses: android-actions/setup-android@v3
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v4
+        with:
+          packages: 'platform-tools'
 
-      - name: Instalar Gradle
+      - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.10'
 
-      - name: Extraer proyecto Xit FF
+      - name: Extraer Xit FF
         run: |
           rm -rf build_project
           mkdir build_project
           unzip -q Xit_FF_Shizuku.zip -d build_project
 
-          echo "Contenido extraído:"
-          find build_project -maxdepth 3 -type f | head -100
-
-      - name: Encontrar proyecto Android
+      - name: Encontrar proyecto
         run: |
           PROJECT_DIR=$(dirname "$(find build_project -name settings.gradle.kts -o -name settings.gradle | head -1)")
 
           if [ -z "$PROJECT_DIR" ] || [ "$PROJECT_DIR" = "." ]; then
-            echo "ERROR: No se encontró settings.gradle.kts ni settings.gradle dentro del ZIP."
+            echo "No se encontró el proyecto Android dentro del ZIP."
             exit 1
           fi
 
-          echo "Proyecto encontrado en: $PROJECT_DIR"
+          echo "Proyecto encontrado: $PROJECT_DIR"
           echo "PROJECT_DIR=$PROJECT_DIR" >> "$GITHUB_ENV"
+
+      - name: Instalar SDK requerido
+        run: |
+          sdkmanager "platforms;android-35" "build-tools;35.0.0"
 
       - name: Compilar APK
         run: |
           cd "$PROJECT_DIR"
           gradle assembleDebug
 
-      - name: Subir APK como Artifact
+      - name: Subir APK
         uses: actions/upload-artifact@v4
         with:
           name: Xit-FF-APK
