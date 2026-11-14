@@ -43,8 +43,8 @@ jobs:
         run: |
           PROJECT_DIR=$(dirname "$(find build_project -name settings.gradle.kts -o -name settings.gradle | head -1)")
 
-          if [ -z "$PROJECT_DIR" ] || [ "$PROJECT_DIR" = "." ]; then
-            echo "No se encontró el proyecto Android dentro del ZIP."
+          if [ -z "$PROJECT_DIR" ]; then
+            echo "No se encontró el proyecto Android."
             exit 1
           fi
 
